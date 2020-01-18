@@ -20,12 +20,13 @@ using System.Text.RegularExpressions;
 using EnhancedStreamChat.Images;
 using StreamCore.YouTube;
 using StreamCore.Twitch;
+using StreamCore.Mixer;
 using System.Text;
 using System.Diagnostics;
 
 namespace EnhancedStreamChat
 {
-    public class ChatHandler : MonoBehaviour, ITwitchIntegration, IYouTubeIntegration
+    public class ChatHandler : MonoBehaviour, ITwitchIntegration, IYouTubeIntegration, IMixerIntegration
     {
         public static ChatHandler Instance = null;
         public static ConcurrentQueue<ChatMessage> RenderQueue = new ConcurrentQueue<ChatMessage>();
@@ -384,6 +385,16 @@ namespace EnhancedStreamChat
                 if (msgId == String.Empty) return;
                 PurgeChatMessageById(msgId);
             };
+
+            MixerClient.OnConnected += () =>
+            {
+                RenderQueue.Enqueue(new ChatMessage("Connected to Mixer chat...", new GenericChatMessage()));
+            };
+
+            MixerMessageHandlers.Message += (message) =>
+            {
+                MessageParser.Parse(new ChatMessage(Utilities.EscapeHTML(message.message), message));
+            };
         }
 
         private void InitializeChatUI()
@@ -484,11 +495,11 @@ namespace EnhancedStreamChat
                     continue;
                 }
 
-                if(openTags.Count > 0)
+                if (openTags.Count > 0)
                 {
-                    foreach(var tag in openTags.ToArray())
+                    foreach (var tag in openTags.ToArray())
                     {
-                        msg = msg.Insert(0, $"<{tag.Key}{(tag.Value != null? $"={tag.Value}" : "")}>");
+                        msg = msg.Insert(0, $"<{tag.Key}{(tag.Value != null ? $"={tag.Value}" : "")}>");
                         var closingTag = $"</{tag.Key}>";
                         if (msg.Contains(closingTag))
                         {

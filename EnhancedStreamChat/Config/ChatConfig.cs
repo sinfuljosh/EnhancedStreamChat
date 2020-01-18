@@ -1,5 +1,6 @@
 ﻿//using EnhancedTwitchChat.Bot;
-using IllusionPlugin;
+using IPA;
+using IPA.Old;
 using StreamCore.SimpleJSON;
 using System;
 using System.Collections.Generic;
